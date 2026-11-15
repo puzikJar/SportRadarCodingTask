@@ -271,6 +271,34 @@ class ScoreboardIT {
     }
 
     @Nested
+    @DisplayName("Should find the match a team is currently playing in")
+    class FindMatchByTeam {
+
+        @Test
+        @DisplayName("The one where Spain – Brazil is in progress and looking up \"brazil\" returns Spain – Brazil")
+        void findsMatchByTeamIgnoringCase() {
+            Scoreboard board = Scoreboard.inMemory(Clock.fixed(Instant.parse("2026-06-11T18:00:00Z"), ZoneOffset.UTC));
+            MatchId spainBrazil = board.startMatch("Spain", "Brazil");
+            board.startMatch("Germany", "France");
+
+            assertThat(board.findMatchByTeam("brazil")).hasValueSatisfying(match -> {
+                assertThat(match.id()).isEqualTo(spainBrazil);
+                assertThat(match.homeTeam()).isEqualTo("Spain");
+                assertThat(match.awayTeam()).isEqualTo("Brazil");
+            });
+        }
+
+        @Test
+        @DisplayName("The one where Spain – Brazil has been finished and looking up Spain returns nothing")
+        void findsNothingForTeamWhoseMatchHasFinished() {
+            Scoreboard board = Scoreboard.inMemory(Clock.fixed(Instant.parse("2026-06-11T18:00:00Z"), ZoneOffset.UTC));
+            board.finishMatch(board.startMatch("Spain", "Brazil"));
+
+            assertThat(board.findMatchByTeam("Spain")).isEmpty();
+        }
+    }
+
+    @Nested
     @DisplayName("Must be safe for concurrent use")
     class ConcurrentUse {
 

@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -101,6 +102,19 @@ final class InMemoryScoreboard implements Scoreboard {
     }
 
     @Override
+    public Optional<Match> findMatchByTeam(String team) {
+        Team searched = new Team(team);
+        readLock.lock();
+        try {
+            return matches.values().stream()
+                    .filter(match -> isPlayedBy(match, searched))
+                    .findFirst();
+        } finally {
+            readLock.unlock();
+        }
+    }
+
+    @Override
     public List<Match> summary() {
         readLock.lock();
         try {
@@ -116,5 +130,9 @@ final class InMemoryScoreboard implements Scoreboard {
         if (teamsPlaying.contains(team)) {
             throw new TeamAlreadyPlayingException(team.name());
         }
+    }
+
+    private static boolean isPlayedBy(Match match, Team team) {
+        return new Team(match.homeTeam()).equals(team) || new Team(match.awayTeam()).equals(team);
     }
 }

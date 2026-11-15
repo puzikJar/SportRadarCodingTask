@@ -11,6 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 
 @DisplayName("InMemoryScoreboard")
 class InMemoryScoreboardTest {
@@ -33,6 +35,18 @@ class InMemoryScoreboardTest {
 
         assertThat(match.homeTeam()).isEqualTo("Mexico");
         assertThat(match.awayTeam()).isEqualTo("Canada");
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"   "})
+    @DisplayName("rejects a null, empty or blank team name when finding a match by team")
+    void rejectsMissingOrBlankTeamNameWhenFindingMatch(String invalidName) {
+        Scoreboard board = new InMemoryScoreboard(Clock.fixed(Instant.parse("2026-06-11T18:00:00Z"), ZoneOffset.UTC));
+        board.startMatch("Spain", "Brazil");
+
+        assertThatThrownBy(() -> board.findMatchByTeam(invalidName))
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @ParameterizedTest(name = "rejects a negative score of ({0}, {1}) and leaves the score unchanged")

@@ -2,6 +2,7 @@ package com.sportradar.scoreboard;
 
 import java.time.Clock;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A live scoreboard of football matches in progress.
@@ -51,6 +52,16 @@ public interface Scoreboard {
      *                                  already finished
      */
     void finishMatch(MatchId id);
+
+    /**
+     * Finds the match in progress that the given team is playing in. The team name is trimmed and compared ignoring
+     * case.
+     *
+     * @param team the team name, never {@code null} or blank
+     * @return the current snapshot of the team's match, or an empty optional if the team is not playing
+     * @throws IllegalArgumentException if the team name is {@code null} or blank
+     */
+    Optional<Match> findMatchByTeam(String team);
 
     /**
      * Returns the matches in progress, ordered by total score (home plus away), highest first. Matches with the same
